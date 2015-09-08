@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package>
+	<name>tsv_to_pointcloud</name>
+	<version>1.0.0</version>
+	<description>The tsv_to_pointcloud package publishes ROS sensor_msgs::PointCloud2 from a Qualisys motion capture tsv file</description>
+	<maintainer email="carloscosta.cmcc@gmail.com">Carlos Miguel Correia da Costa</maintainer>
+	<license>BSD</license>
+	<author email="carloscosta.cmcc@gmail.com">Carlos Miguel Correia da Costa</author>
+
+
+	<buildtool_depend>catkin</buildtool_depend>
+
+
+	<!-- ################################################################## -->
+	<!-- Build dependencies -->
+	<!-- ################################################################## -->
+
+	<!-- other ros packages -->
+	<build_depend>roscpp</build_depend>
+	<build_depend>sensor_msgs</build_depend>
+
+
+	<!-- ################################################################## -->
+	<!-- Run dependencies -->
+	<!-- ################################################################## -->
+
+	<!-- other ros packages -->
+	<run_depend>roscpp</run_depend>
+	<run_depend>sensor_msgs</run_depend>
+</package>

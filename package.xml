@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-	<name>tsv_to_pointcloud</name>
+	<name>qualysis_tsv_parsers</name>
 	<version>1.0.0</version>
-	<description>The tsv_to_pointcloud package publishes ROS sensor_msgs::PointCloud2 from a Qualisys motion capture tsv file</description>
+	<description>The qualysis_tsv_parsers package publishes ROS sensor_msgs::PointCloud2 and TF transforms from a Qualisys motion capture tsv file with 3D/6D data</description>
 	<maintainer email="carloscosta.cmcc@gmail.com">Carlos Miguel Correia da Costa</maintainer>
 	<license>BSD</license>
 	<author email="carloscosta.cmcc@gmail.com">Carlos Miguel Correia da Costa</author>

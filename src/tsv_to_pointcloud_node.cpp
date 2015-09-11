@@ -6,13 +6,9 @@
  */
 
 
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <constants>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </constants>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <includes>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 #include <ros/ros.h>
-#include <tsv_to_pointcloud/tsv_parser.h>
+#include <qualysis_tsv_parsers/tsv_to_pointcloud.h>
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </includes>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
@@ -30,9 +26,9 @@ int main(int argc, char** argv) {
 	std::string pointclouds_frame_id;
 	private_node_handle->param("pointclouds_frame_id", pointclouds_frame_id, std::string("map"));
 
-	tsv_to_pointcloud::TSVParser tsv_parser;
-	tsv_parser.setupConfigurationFromParameterServer(node_handle, private_node_handle);
-	tsv_parser.publishPointCloudsFromTSV(tsv_filename, pointclouds_frame_id);
+	tsv_to_pointcloud::TSVToPointCloud tsv_to_cloud;
+	tsv_to_cloud.setupConfigurationFromParameterServer(node_handle, private_node_handle);
+	tsv_to_cloud.publishDataFromTSV(tsv_filename, pointclouds_frame_id);
 
 	return 0;
 }

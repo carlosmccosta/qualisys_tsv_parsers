@@ -8,7 +8,8 @@
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <includes>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 #include <ros/ros.h>
-#include <qualysis_tsv_parsers/tsv_to_pointcloud.h>
+
+#include <qualisys_tsv_parsers/tsv_to_pointcloud.h>
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </includes>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
@@ -23,12 +24,9 @@ int main(int argc, char** argv) {
 	std::string tsv_filename;
 	private_node_handle->param("tsv_filename", tsv_filename, std::string("pointclouds.tsv"));
 
-	std::string pointclouds_frame_id;
-	private_node_handle->param("pointclouds_frame_id", pointclouds_frame_id, std::string("map"));
-
-	tsv_to_pointcloud::TSVToPointCloud tsv_to_cloud;
+	qualisys_tsv_parsers::TSVToPointCloud tsv_to_cloud;
 	tsv_to_cloud.setupConfigurationFromParameterServer(node_handle, private_node_handle);
-	tsv_to_cloud.publishDataFromTSV(tsv_filename, pointclouds_frame_id);
+	tsv_to_cloud.publishDataFromTSVFile(tsv_filename);
 
 	return 0;
 }

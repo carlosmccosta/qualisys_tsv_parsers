@@ -6,27 +6,36 @@
  */
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <includes>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#include <qualysis_tsv_parsers/tsv_parser.h>
+#include <qualisys_tsv_parsers/tsv_parser.h>
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </includes>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-namespace tsv_to_pointcloud {
+namespace qualisys_tsv_parsers {
 
 // =============================================================================  <public-section>  ============================================================================
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <constructors-destructor>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-TSVParser::TSVParser(TSVPointType tsv_point_type) : tsv_point_type_(tsv_point_type) {}
+TSVParser::TSVParser(TSVPointType tsv_point_type) :
+		load_base_time_from_tsv_header_(true),
+		tsv_point_type_(tsv_point_type),
+		tsv_data_multiplier_(0.001),
+		tsv_data_offset_x_(0.0),
+		tsv_data_offset_y_(0.0),
+		tsv_data_offset_z_(0.0),
+		tsv_time_multiplier_(1.0),
+		tsv_null_string_("NULL")
+		{}
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </constructors-destructor>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <TSVParser-functions>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 void TSVParser::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_handle, ros::NodeHandlePtr& private_node_handle) {
-	private_node_handle->param("load_pointclouds_base_time_from_tsv_header", load_pointclouds_base_time_from_tsv_header_, true);
+	private_node_handle->param("load_base_time_from_tsv_header", load_base_time_from_tsv_header_, true);
 
 	double time_offset = 0.0;
-	private_node_handle->param("pointclouds_time_offset", time_offset, 0.0);
+	private_node_handle->param("tsv_time_offset", time_offset, 0.0);
 	time_offset_.fromSec(time_offset);
 
-	std::string tsv_points_offsets;
-	private_node_handle->param("tsv_points_offsets", tsv_points_offsets, std::string("2+5+8+11+14+17+20+23"));
-	parsePointsOffsets(tsv_points_offsets);
+	std::string tsv_data_columns;
+	private_node_handle->param("tsv_data_columns", tsv_data_columns, std::string("2+5+8+11+14+17+20+23"));
+	parseTSVDataColumns(tsv_data_columns);
 
 	private_node_handle->param("tsv_data_multiplier", tsv_data_multiplier_, 0.001);
 	private_node_handle->param("tsv_data_offset_x", tsv_data_offset_x_, 0.0);
@@ -34,24 +43,25 @@ void TSVParser::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_h
 	private_node_handle->param("tsv_data_offset_z", tsv_data_offset_z_, 0.0);
 
 	private_node_handle->param("tsv_time_multiplier", tsv_time_multiplier_, 1.0);
+	private_node_handle->param("tsv_null_string", tsv_null_string_, std::string("NULL"));
 }
 
 
-void TSVParser::parsePointsOffsets(std::string& offsets) {
+void TSVParser::parseTSVDataColumns(std::string& offsets) {
 	std::replace(offsets.begin(), offsets.end(), '+', ' ');
 
 	std::stringstream ss(offsets);
 	size_t offset;
 
 	while (ss >> offset) {
-		tsv_points_offsets_.push_back(offset);
+		tsv_data_columns_.push_back(offset);
 	}
 }
 
 
 bool TSVParser::parseTSVHeader(std::ifstream& input_stream) {
 	// time offset
-	if (load_pointclouds_base_time_from_tsv_header_) {
+	if (load_base_time_from_tsv_header_) {
 		std::string tsv_base_time;
 		if (!loadTSVValue(input_stream, "TIME_STAMP", tsv_base_time)) { return false; }
 		base_time_stamp_.fromSec(parseUTCBaseTime(tsv_base_time));
@@ -115,5 +125,5 @@ double TSVParser::parseUTCBaseTime(const std::string& tsv_base_time) {
 // =============================================================================  </public-section>  ===========================================================================
 
 
-} /* namespace tsv_to_pointcloud */
+} /* namespace qualisys_tsv_parsers */
 

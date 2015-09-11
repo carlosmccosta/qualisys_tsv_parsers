@@ -20,13 +20,13 @@
 // external libs includes
 
 // project includes
-#include <qualysis_tsv_parsers/pointcloud2_builder.h>
-#include <qualysis_tsv_parsers/tsv_parser.h>
+#include <qualisys_tsv_parsers/pointcloud2_builder.h>
+#include <qualisys_tsv_parsers/tsv_parser.h>
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </includes>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
-namespace tsv_to_pointcloud {
+namespace qualisys_tsv_parsers {
 // ###########################################################################   tsv_to_pointcloud   ###########################################################################
 /**
  * \brief Description...
@@ -41,16 +41,19 @@ class TSVToPointCloud : public TSVParser {
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <TSVToPointCloud-functions>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		virtual void setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_handle, ros::NodeHandlePtr& private_node_handle);
-		virtual size_t publishDataFromTSV(const std::string& filename, const std::string& frame_id = "map");
+		virtual size_t publishDataFromTSVFile(const std::string& filename);
 		bool loadTSVPointCloud(std::ifstream& input_stream, sensor_msgs::PointCloud2::Ptr& pointcloud, const std::string& frame_id);
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </TSVToPointCloud-functions>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	// ========================================================================   </public-section>  ===========================================================================
 
 	// ========================================================================   <protected-section>   ========================================================================
 	protected:
+		// configuration fields
+		std::string pointclouds_frame_id_;
+
 		// ros communication fields
 		ros::Publisher pointcloud_publisher_;
 	// ========================================================================   </protected-section>  ========================================================================
 };
 
-} /* namespace tsv_to_pointcloud */
+} /* namespace qualisys_tsv_parsers */

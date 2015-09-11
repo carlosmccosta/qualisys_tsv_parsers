@@ -6,22 +6,27 @@
  */
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <includes>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#include <qualysis_tsv_parsers/tsv_to_pointcloud.h>
+#include <qualisys_tsv_parsers/tsv_to_pointcloud.h>
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </includes>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-namespace tsv_to_pointcloud {
+namespace qualisys_tsv_parsers {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <imports>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </imports>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 // =============================================================================  <public-section>  ============================================================================
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <constructors-destructor>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-TSVToPointCloud::TSVToPointCloud() : TSVParser(Point6D) {}
+TSVToPointCloud::TSVToPointCloud() :
+		TSVParser(Point6D),
+		pointclouds_frame_id_("map")
+		{}
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </constructors-destructor>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <TSVToPointCloud-functions>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 void TSVToPointCloud::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_handle, ros::NodeHandlePtr& private_node_handle) {
 	TSVParser::setupConfigurationFromParameterServer(node_handle, private_node_handle);
+
+	private_node_handle->param("pointclouds_frame_id", pointclouds_frame_id_, std::string("map"));
 
 	std::string pointcloud_publish_topic;
 	private_node_handle->param("pointcloud_publish_topic", pointcloud_publish_topic, std::string("tsv_pointcloud"));
@@ -29,8 +34,8 @@ void TSVToPointCloud::setupConfigurationFromParameterServer(ros::NodeHandlePtr& 
 }
 
 
-size_t TSVToPointCloud::publishDataFromTSV(const std::string& filename, const std::string& frame_id) {
-	if (pointcloud_publisher_.getTopic().empty() || filename.empty() || frame_id.empty()) {
+size_t TSVToPointCloud::publishDataFromTSVFile(const std::string& filename) {
+	if (pointcloud_publisher_.getTopic().empty() || filename.empty() || pointclouds_frame_id_.empty()) {
 		return 0;
 	}
 
@@ -42,7 +47,7 @@ size_t TSVToPointCloud::publishDataFromTSV(const std::string& filename, const st
 
 	if (input_stream.is_open()) {
 		if (!parseTSVHeader(input_stream)) { return 0; }
-		while (loadTSVPointCloud(input_stream, pointcloud, frame_id)) {
+		while (loadTSVPointCloud(input_stream, pointcloud, pointclouds_frame_id_)) {
 			double delay_for_next_msg_publish = pointcloud->header.stamp.toSec() - ros::Time::now().toSec() - 0.005;
 			if (delay_for_next_msg_publish > -3.0) {
 				if (delay_for_next_msg_publish > 0.0 && ros::Time::now().sec != 0) { ros::Duration(delay_for_next_msg_publish).sleep(); }
@@ -60,44 +65,58 @@ bool TSVToPointCloud::loadTSVPointCloud(std::ifstream& input_stream, sensor_msgs
 	std::string line;
 	std::getline(input_stream, line);
 	if (line.empty()) { return false; }
-	std::stringstream ss(line);
+	std::stringstream ss_line(line);
 
-	double value;
+	std::string value_str;
 	ros::Time time_stamp = base_time_stamp_;
 	double x = 0.0;
 	double y = 0.0;
 	double z = 0.0;
-	std::vector<size_t>::iterator it_indexes = tsv_points_offsets_.begin();
+	std::vector<size_t>::iterator it_indexes = tsv_data_columns_.begin();
 	size_t current_target_index = *it_indexes;
 	size_t current_token_index = 0;
 
 	PointCloud2Builder pointcloud_builder;
 	pointcloud_builder.createNewCloud(frame_id);
+	bool point_valid = true;
 
-	while (ss >> value) {
-		if (current_token_index == 1) {
-			time_stamp += ros::Duration(value * tsv_time_multiplier_);
-		}
+	while (ss_line >> value_str) {
+		if (value_str == tsv_null_string_) {
+			point_valid = false;
+		} else {
+			std::stringstream ss_number(value_str);
+			double value_number;
+			if (ss_number >> value_number) {
+				if (current_token_index == 1) {
+					time_stamp += ros::Duration(value_number * tsv_time_multiplier_);
+				}
 
-		value *= tsv_data_multiplier_;
+				value_number *= tsv_data_multiplier_;
 
-		if (current_token_index == current_target_index) {
-			x = value + tsv_data_offset_x_;
-		}
+				if (current_token_index == current_target_index) {
+					x = value_number + tsv_data_offset_x_;
+				}
 
-		if (current_token_index == current_target_index + 1) {
-			y = value + tsv_data_offset_y_;
-		}
+				if (current_token_index == current_target_index + 1) {
+					y = value_number + tsv_data_offset_y_;
+				}
 
-		if (current_token_index == current_target_index + 2) {
-			z = value + tsv_data_offset_z_;
+				if (current_token_index == current_target_index + 2) {
+					z = value_number + tsv_data_offset_z_;
+				}
+			} else {
+				point_valid = false;
+			}
 		}
 
 		if ((current_token_index == current_target_index + 1 && tsv_point_type_ == Point2D) || current_token_index == current_target_index + 2) {
-			pointcloud_builder.addNewPoint(x, y, z);
+			if (point_valid) {
+				pointcloud_builder.addNewPoint(x, y, z);
+			}
+			point_valid = true;
 
 			++it_indexes;
-			if (it_indexes == tsv_points_offsets_.end()) {
+			if (it_indexes == tsv_data_columns_.end()) {
 				pointcloud = pointcloud_builder.getPointcloudMsg();
 				pointcloud->header.stamp = time_stamp;
 				return true;
@@ -114,5 +133,5 @@ bool TSVToPointCloud::loadTSVPointCloud(std::ifstream& input_stream, sensor_msgs
 // =============================================================================  </public-section>  ===========================================================================
 
 
-} /* namespace tsv_to_pointcloud */
+} /* namespace qualisys_tsv_parsers */
 

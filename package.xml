@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-	<name>qualysis_tsv_parsers</name>
+	<name>qualisys_tsv_parsers</name>
 	<version>1.0.0</version>
-	<description>The qualysis_tsv_parsers package publishes ROS sensor_msgs::PointCloud2 and TF transforms from a Qualisys motion capture tsv file with 3D/6D data</description>
+	<description>The qualisys_tsv_parsers package publishes ROS sensor_msgs::PointCloud2 and TF transforms from a Qualisys motion capture tsv file with 3D/6D data</description>
 	<maintainer email="carloscosta.cmcc@gmail.com">Carlos Miguel Correia da Costa</maintainer>
 	<license>BSD</license>
 	<author email="carloscosta.cmcc@gmail.com">Carlos Miguel Correia da Costa</author>
@@ -17,7 +17,10 @@
 
 	<!-- other ros packages -->
 	<build_depend>roscpp</build_depend>
+	<build_depend>geometry_msgs</build_depend>
 	<build_depend>sensor_msgs</build_depend>
+	<build_depend>tf2</build_depend>
+	<build_depend>tf2_ros</build_depend>
 
 
 	<!-- ################################################################## -->
@@ -26,5 +29,8 @@
 
 	<!-- other ros packages -->
 	<run_depend>roscpp</run_depend>
+	<run_depend>geometry_msgs</run_depend>
 	<run_depend>sensor_msgs</run_depend>
+	<run_depend>tf2</run_depend>
+	<run_depend>tf2_ros</run_depend>
 </package>

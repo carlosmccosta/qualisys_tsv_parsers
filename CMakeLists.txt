@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(qualysis_tsv_parsers)
+project(qualisys_tsv_parsers)
 
 
 
@@ -9,7 +9,10 @@ project(qualysis_tsv_parsers)
 
 set(${PROJECT_NAME}_CATKIN_COMPONENTS
     roscpp
+    geometry_msgs
     sensor_msgs
+    tf2
+    tf2_ros
 )
 
 find_package(catkin REQUIRED COMPONENTS ${${PROJECT_NAME}_CATKIN_COMPONENTS})
@@ -63,6 +66,10 @@ add_library(tsv_to_pointcloud
     src/tsv_to_pointcloud.cpp
 )
 
+add_library(tsv_to_tf
+    src/tsv_to_tf.cpp
+)
+
 
 #==================
 # executables
@@ -72,6 +79,9 @@ add_executable(tsv_to_pointcloud_node
     src/tsv_to_pointcloud_node.cpp
 )
 
+add_executable(tsv_to_tf_node
+    src/tsv_to_tf_node.cpp
+)
 
 
 #==================
@@ -92,7 +102,18 @@ target_link_libraries(tsv_to_pointcloud
     ${catkin_LIBRARIES}
 )
 
+target_link_libraries(tsv_to_tf
+    tsv_parser
+    ${catkin_LIBRARIES}
+)
+
+
 target_link_libraries(tsv_to_pointcloud_node
     tsv_to_pointcloud
+    ${catkin_LIBRARIES}
+)
+
+target_link_libraries(tsv_to_tf_node
+    tsv_to_tf
     ${catkin_LIBRARIES}
 )

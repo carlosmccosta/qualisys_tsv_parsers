@@ -21,6 +21,8 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2/LinearMath/Vector3.h>
 #include <tf2_ros/transform_broadcaster.h>
 
 // external libs includes
@@ -60,6 +62,8 @@ class TSVToTF : public TSVParser {
 		std::vector<std::string> target_frame_ids_;
 		tf2::Quaternion orientation_offset_;
 		std::vector<int> pose_arrays_number_msgs_to_skip_in_pose_array_msgs_;
+		std::vector<bool> invert_tf_transforms_;
+		std::vector<bool> invert_tf_hierarchies_;
 
 		// state fields
 		std::vector<geometry_msgs::PoseArray> pose_arrays_;

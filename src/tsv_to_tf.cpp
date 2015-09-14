@@ -39,6 +39,14 @@ void TSVToTF::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_han
 	private_node_handle->param("target_frame_ids", target_frame_ids, std::string("map+map+map"));
 	extractValues(target_frame_ids, target_frame_ids_);
 
+	std::string invert_tf_transforms_str;
+	private_node_handle->param("invert_tf_transforms", invert_tf_transforms_str, std::string("0+0+0"));
+	extractValues(invert_tf_transforms_str, invert_tf_transforms_);
+
+	std::string invert_tf_hierarchies_str;
+	private_node_handle->param("invert_tf_hierarchies", invert_tf_hierarchies_str, std::string("0+0+0"));
+	extractValues(invert_tf_hierarchies_str, invert_tf_hierarchies_);
+
 	std::string pose_topics;
 	private_node_handle->param("pose_topics", pose_topics, std::string("pose_robot+pose_camera2+pose_camera1"));
 	std::vector<std::string> pose_topics_vector;
@@ -96,6 +104,12 @@ size_t TSVToTF::publishDataFromTSVFile(const std::string& filename) {
 
 		if (!pose_publishers_.empty() && pose_publishers_.size() != number_of_tracking_bodies) {
 			ROS_ERROR("Incorrect setup of the PoseStamped publishers");
+			return 0;
+		}
+
+		if ((!invert_tf_hierarchies_.empty() && invert_tf_hierarchies_.size() != number_of_tracking_bodies) ||
+			(!invert_tf_transforms_.empty()  && invert_tf_transforms_.size()  != number_of_tracking_bodies)) {
+			ROS_ERROR("Incorrect setup of the inversion of the TF transforms");
 			return 0;
 		}
 
@@ -211,17 +225,32 @@ bool TSVToTF::loadAndPublishTSVTFs(std::ifstream& input_stream, ros::Time& time_
 
 void TSVToTF::publishNewBodyTF(double x, double y, double z, const tf2::Quaternion& orientation, size_t tracking_body_number, const ros::Time& time_stamp) {
 	geometry_msgs::TransformStamped tf;
-	tf.child_frame_id = source_frame_ids_[tracking_body_number];
-	tf.header.frame_id = target_frame_ids_[tracking_body_number];
+	tf.child_frame_id  = (!invert_tf_hierarchies_.empty() && invert_tf_hierarchies_[tracking_body_number]) ? target_frame_ids_[tracking_body_number] : source_frame_ids_[tracking_body_number];
+	tf.header.frame_id = (!invert_tf_hierarchies_.empty() && invert_tf_hierarchies_[tracking_body_number]) ? source_frame_ids_[tracking_body_number] : target_frame_ids_[tracking_body_number];
 	tf.header.stamp = time_stamp;
 
-	tf.transform.translation.x = x;
-	tf.transform.translation.y = y;
-	tf.transform.translation.z = z;
-	tf.transform.rotation.x = orientation.getX();
-	tf.transform.rotation.y = orientation.getY();
-	tf.transform.rotation.z = orientation.getZ();
-	tf.transform.rotation.w = orientation.getW();
+	if (!invert_tf_transforms_.empty() && invert_tf_transforms_[tracking_body_number]) {
+		tf2::Transform tf2;
+		tf2.setOrigin(tf2::Vector3(x, y, z));
+		tf2.setRotation(orientation);
+		tf2::Transform tf2_inverse = tf2.inverse();
+
+		tf.transform.translation.x = tf2_inverse.getOrigin().getX();
+		tf.transform.translation.y = tf2_inverse.getOrigin().getY();
+		tf.transform.translation.z = tf2_inverse.getOrigin().getZ();
+		tf.transform.rotation.x = tf2_inverse.getRotation().getX();
+		tf.transform.rotation.y = tf2_inverse.getRotation().getY();
+		tf.transform.rotation.z = tf2_inverse.getRotation().getZ();
+		tf.transform.rotation.w = tf2_inverse.getRotation().getW();
+	} else {
+		tf.transform.translation.x = x;
+		tf.transform.translation.y = y;
+		tf.transform.translation.z = z;
+		tf.transform.rotation.x = orientation.getX();
+		tf.transform.rotation.y = orientation.getY();
+		tf.transform.rotation.z = orientation.getZ();
+		tf.transform.rotation.w = orientation.getW();
+	}
 
 	transform_broadcaster_.sendTransform(tf);
 }

@@ -13,7 +13,9 @@
 	<arg name="load_base_time_from_tsv_header" 				default="false" />
 
 	<arg name="source_frame_ids" 							default="base_link+camera2+camera1" />
-	<arg name="target_frame_ids" 							default="map+map+map" />
+	<arg name="target_frame_ids" 							default="map_qualisys+map_qualisys+map_qualisys" />
+	<arg name="invert_tf_transforms" 						default="1+0+0" />
+	<arg name="invert_tf_hierarchies" 						default="1+0+0" />
 	<arg name="pose_topics" 								default="pose_robot+pose_camera2+pose_camera1" />		<!-- use none to ignore one of the tracked bodies -->
 	<arg name="pose_array_topics" 							default="poses_robot+poses_camera2+poses_camera1" />	<!-- use none to ignore one of the tracked bodies -->
 	<arg name="tsv_data_offset_qx" 							default="0.0" />
@@ -36,6 +38,8 @@
 		<param name="load_base_time_from_tsv_header" 			type="bool" 	value="$(arg load_base_time_from_tsv_header)" />
 		<param name="source_frame_ids" 							type="str" 		value="$(arg source_frame_ids)" />
 		<param name="target_frame_ids" 							type="str" 		value="$(arg target_frame_ids)" />
+		<param name="invert_tf_transforms" 						type="str" 		value="$(arg invert_tf_transforms)" />
+		<param name="invert_tf_hierarchies" 					type="str" 		value="$(arg invert_tf_hierarchies)" />
 		<param name="pose_topics" 								type="str" 		value="$(arg pose_topics)" />
 		<param name="pose_array_topics" 						type="str" 		value="$(arg pose_array_topics)" />
 		<param name="tsv_data_offset_qx" 						type="double" 	value="$(arg tsv_data_offset_qx)" />

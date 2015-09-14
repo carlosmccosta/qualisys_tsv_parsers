@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-	<arg name="tsv_filename" default="pointclouds.tsv" />
-	<arg name="pointclouds_frame_id" default="map" />
-	<arg name="pointcloud_publish_topic" default="tsv_pointcloud" />
-	<arg name="tsv_time_offset" default="0.0" />
-	<arg name="tsv_data_columns" default="2+5+8+11+14+17+20+23+26+29+32+35+38" />
-	<arg name="tsv_data_multiplier" default="0.001" />
-	<arg name="tsv_data_offset_x" default="0.0" />
-	<arg name="tsv_data_offset_y" default="0.0" />
-	<arg name="tsv_data_offset_z" default="0.0" />
-	<arg name="tsv_time_multiplier" default="1.0" />
-	<arg name="tsv_null_string" default="NULL" />
-	<arg name="load_base_time_from_tsv_header" default="false" />
+	<arg name="tsv_filename" 					default="pointclouds.tsv" />
+	<arg name="pointclouds_frame_id" 			default="map" />
+	<arg name="pointcloud_publish_topic" 		default="tsv_pointcloud" />
+	<arg name="tsv_time_offset" 				default="0.0" />
+	<arg name="tsv_data_columns" 				default="2+5+8+11+14+17+20+23" />
+	<arg name="tsv_data_multiplier" 			default="0.001" />
+	<arg name="tsv_data_offset_x" 				default="0.0" />
+	<arg name="tsv_data_offset_y" 				default="0.0" />
+	<arg name="tsv_data_offset_z" 				default="0.0" />
+	<arg name="tsv_time_multiplier" 			default="1.0" />
+	<arg name="tsv_null_string" 				default="NULL" />
+	<arg name="load_base_time_from_tsv_header" 	default="false" />
 
-	<node pkg="qualisys_tsv_parsers" type="tsv_to_pointcloud_node" name="tsv_to_pointcloud_node" output="screen" > <!-- launch-prefix="gdbserver localhost:1227" -->
-		<param name="tsv_filename" type="str" value="$(arg tsv_filename)" />
-		<param name="pointclouds_frame_id" type="str" value="$(arg pointclouds_frame_id)" />
-		<param name="pointcloud_publish_topic" type="str" value="$(arg pointcloud_publish_topic)" />
-		<param name="tsv_time_offset" type="double" value="$(arg tsv_time_offset)" />
-		<param name="load_base_time_from_tsv_header" type="bool" value="$(arg load_base_time_from_tsv_header)" />
-		<param name="tsv_data_columns" type="str" value="$(arg tsv_data_columns)" />
-		<param name="tsv_data_multiplier" type="double" value="$(arg tsv_data_multiplier)" />
-		<param name="tsv_data_offset_x" type="double" value="$(arg tsv_data_offset_x)" />
-		<param name="tsv_data_offset_y" type="double" value="$(arg tsv_data_offset_y)" />
-		<param name="tsv_data_offset_z" type="double" value="$(arg tsv_data_offset_z)" />
-		<param name="tsv_time_multiplier" type="double" value="$(arg tsv_time_multiplier)" />
-		<param name="tsv_null_string" type="double" value="$(arg tsv_null_string)" />
+	<node pkg="qualisys_tsv_parsers" type="tsv_to_pointcloud_node" name="tsv_to_pointcloud_node" output="screen" > <!-- launch-prefix="gdbserver localhost:1337" -->
+		<param name="tsv_filename" 						type="str" 		value="$(arg tsv_filename)" />
+		<param name="pointclouds_frame_id" 				type="str" 		value="$(arg pointclouds_frame_id)" />
+		<param name="pointcloud_publish_topic" 			type="str" 		value="$(arg pointcloud_publish_topic)" />
+		<param name="tsv_time_offset" 					type="double" 	value="$(arg tsv_time_offset)" />
+		<param name="load_base_time_from_tsv_header" 	type="bool" 	value="$(arg load_base_time_from_tsv_header)" />
+		<param name="tsv_data_columns" 					type="str" 		value="$(arg tsv_data_columns)" />
+		<param name="tsv_data_multiplier" 				type="double" 	value="$(arg tsv_data_multiplier)" />
+		<param name="tsv_data_offset_x" 				type="double" 	value="$(arg tsv_data_offset_x)" />
+		<param name="tsv_data_offset_y" 				type="double" 	value="$(arg tsv_data_offset_y)" />
+		<param name="tsv_data_offset_z" 				type="double" 	value="$(arg tsv_data_offset_z)" />
+		<param name="tsv_time_multiplier" 				type="double" 	value="$(arg tsv_time_multiplier)" />
+		<param name="tsv_null_string" 					type="str" 	value="$(arg tsv_null_string)" />
 	</node>
 </launch>

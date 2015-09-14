@@ -46,14 +46,21 @@ size_t TSVToPointCloud::publishDataFromTSVFile(const std::string& filename) {
 	sensor_msgs::PointCloud2::Ptr pointcloud;
 
 	if (input_stream.is_open()) {
-		if (!parseTSVHeader(input_stream)) { return 0; }
-		while (loadTSVPointCloud(input_stream, pointcloud, pointclouds_frame_id_)) {
-			double delay_for_next_msg_publish = pointcloud->header.stamp.toSec() - ros::Time::now().toSec() - 0.005;
-			if (delay_for_next_msg_publish > -3.0) {
-				if (delay_for_next_msg_publish > 0.0 && ros::Time::now().sec != 0) { ros::Duration(delay_for_next_msg_publish).sleep(); }
-				pointcloud_publisher_.publish(pointcloud);
-				++number_published_pointclouds;
+		if (!parseTSVHeader(input_stream)) {
+			ROS_ERROR("Error parsing tsv header");
+			return 0;
+		}
+		if (tsv_point_type_ == Point2D || tsv_point_type_ == Point3D) {
+			while (loadTSVPointCloud(input_stream, pointcloud, pointclouds_frame_id_)) {
+				double delay_for_next_msg_publish = pointcloud->header.stamp.toSec() - ros::Time::now().toSec() - 0.005;
+				if (delay_for_next_msg_publish > -3.0) {
+					if (delay_for_next_msg_publish > 0.0 && ros::Time::now().sec != 0) { ros::Duration(delay_for_next_msg_publish).sleep(); }
+					pointcloud_publisher_.publish(pointcloud);
+					++number_published_pointclouds;
+				}
 			}
+		} else {
+			ROS_ERROR("tsv data is not 2D or 3D");
 		}
 	}
 
@@ -81,7 +88,7 @@ bool TSVToPointCloud::loadTSVPointCloud(std::ifstream& input_stream, sensor_msgs
 	bool point_valid = true;
 
 	while (ss_line >> value_str) {
-		if (value_str == tsv_null_string_) {
+		if (!point_valid || value_str == tsv_null_string_) {
 			point_valid = false;
 		} else {
 			std::stringstream ss_number(value_str);
@@ -95,13 +102,9 @@ bool TSVToPointCloud::loadTSVPointCloud(std::ifstream& input_stream, sensor_msgs
 
 				if (current_token_index == current_target_index) {
 					x = value_number + tsv_data_offset_x_;
-				}
-
-				if (current_token_index == current_target_index + 1) {
+				} else if (current_token_index == current_target_index + 1) {
 					y = value_number + tsv_data_offset_y_;
-				}
-
-				if (current_token_index == current_target_index + 2) {
+				} else if (current_token_index == current_target_index + 2) {
 					z = value_number + tsv_data_offset_z_;
 				}
 			} else {

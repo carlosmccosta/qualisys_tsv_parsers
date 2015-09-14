@@ -35,7 +35,7 @@ void TSVParser::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_h
 
 	std::string tsv_data_columns;
 	private_node_handle->param("tsv_data_columns", tsv_data_columns, std::string("2+5+8+11+14+17+20+23"));
-	parseTSVDataColumns(tsv_data_columns);
+	extractValues(tsv_data_columns, tsv_data_columns_);
 
 	private_node_handle->param("tsv_data_multiplier", tsv_data_multiplier_, 0.001);
 	private_node_handle->param("tsv_data_offset_x", tsv_data_offset_x_, 0.0);
@@ -44,18 +44,6 @@ void TSVParser::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_h
 
 	private_node_handle->param("tsv_time_multiplier", tsv_time_multiplier_, 1.0);
 	private_node_handle->param("tsv_null_string", tsv_null_string_, std::string("NULL"));
-}
-
-
-void TSVParser::parseTSVDataColumns(std::string& offsets) {
-	std::replace(offsets.begin(), offsets.end(), '+', ' ');
-
-	std::stringstream ss(offsets);
-	size_t offset;
-
-	while (ss >> offset) {
-		tsv_data_columns_.push_back(offset);
-	}
 }
 
 

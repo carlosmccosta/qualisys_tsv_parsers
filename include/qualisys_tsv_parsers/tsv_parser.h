@@ -43,7 +43,15 @@ class TSVParser {
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <TSVParser-functions>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		virtual void setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_handle, ros::NodeHandlePtr& private_node_handle);
-		void parseTSVDataColumns(std::string& offsets);
+
+		template <typename Value>
+		void extractValues(std::string& values, std::vector<Value>& values_out, const char delimiter = '+') {
+			std::replace(values.begin(), values.end(), delimiter, ' ');
+			std::stringstream ss(values);
+			Value value;
+			while (ss >> value) { values_out.push_back(value); }
+		}
+
 		virtual size_t publishDataFromTSVFile(const std::string& filename) = 0;
 		bool parseTSVHeader(std::ifstream& input_stream);
 		double parseUTCBaseTime(const std::string& tsv_base_time);

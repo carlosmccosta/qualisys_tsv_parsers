@@ -2,7 +2,7 @@
 <package>
 	<name>qualisys_tsv_parsers</name>
 	<version>1.0.0</version>
-	<description>The qualisys_tsv_parsers package publishes ROS sensor_msgs::PointCloud2 and TF transforms from a Qualisys motion capture tsv file with 3D/6D data</description>
+	<description>The qualisys_tsv_parsers package publishes ROS sensor_msgs::PointCloud2 and TF transforms from Qualisys motion capture tsv files with 2D/3D/6D data</description>
 	<maintainer email="carloscosta.cmcc@gmail.com">Carlos Miguel Correia da Costa</maintainer>
 	<license>BSD</license>
 	<author email="carloscosta.cmcc@gmail.com">Carlos Miguel Correia da Costa</author>

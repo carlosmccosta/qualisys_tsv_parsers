@@ -60,10 +60,12 @@ class TSVToTF : public TSVParser {
 		// configuration fields
 		std::vector<std::string> source_frame_ids_;
 		std::vector<std::string> target_frame_ids_;
-		tf2::Quaternion orientation_offset_;
+		std::vector<std::string> target_frame_ids_poses_;
 		std::vector<int> pose_arrays_number_msgs_to_skip_in_pose_array_msgs_;
 		std::vector<bool> invert_tf_transforms_;
 		std::vector<bool> invert_tf_hierarchies_;
+		tf2::Transform transform_poses_offset_;
+		bool tsv_data_poses_offset_post_multiplication_;
 
 		// state fields
 		std::vector<geometry_msgs::PoseArray> pose_arrays_;

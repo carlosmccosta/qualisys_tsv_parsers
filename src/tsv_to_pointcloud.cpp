@@ -101,11 +101,11 @@ bool TSVToPointCloud::loadTSVPointCloud(std::ifstream& input_stream, sensor_msgs
 				value_number *= tsv_data_multiplier_;
 
 				if (current_token_index == current_target_index) {
-					x = value_number + tsv_data_offset_x_;
+					x = value_number;
 				} else if (current_token_index == current_target_index + 1) {
-					y = value_number + tsv_data_offset_y_;
+					y = value_number;
 				} else if (current_token_index == current_target_index + 2) {
-					z = value_number + tsv_data_offset_z_;
+					z = value_number;
 				}
 			} else {
 				point_valid = false;
@@ -114,7 +114,16 @@ bool TSVToPointCloud::loadTSVPointCloud(std::ifstream& input_stream, sensor_msgs
 
 		if ((current_token_index == current_target_index + 1 && tsv_point_type_ == Point2D) || current_token_index == current_target_index + 2) {
 			if (point_valid) {
-				pointcloud_builder.addNewPoint(x, y, z);
+				tf2::Transform tsv_tf;
+				tsv_tf.setOrigin(tf2::Vector3(x, y, z));
+
+				tf2::Transform tsv_tf_transformed;
+				if (tsv_data_offset_post_multiplication_) {
+					tsv_tf_transformed = tsv_tf * transform_offset_;
+				} else {
+					tsv_tf_transformed = transform_offset_ * tsv_tf;
+				}
+				pointcloud_builder.addNewPoint(tsv_tf_transformed.getOrigin().getX(), tsv_tf_transformed.getOrigin().getY(), tsv_tf_transformed.getOrigin().getZ());
 			}
 			point_valid = true;
 

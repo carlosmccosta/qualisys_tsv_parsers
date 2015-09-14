@@ -15,21 +15,13 @@ namespace qualisys_tsv_parsers {
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <constructors-destructor>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 TSVToTF::TSVToTF() :
 		TSVParser(Point6D),
-		orientation_offset_(0.0, 0.0, 0.0, 1.0)
+		tsv_data_poses_offset_post_multiplication_(true)
 		{}
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </constructors-destructor>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   <TSVToPointCloud-functions>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 void TSVToTF::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_handle, ros::NodeHandlePtr& private_node_handle) {
 	TSVParser::setupConfigurationFromParameterServer(node_handle, private_node_handle);
-
-	double qx, qy, qz, qw;
-	private_node_handle->param("tsv_data_offset_qx", qx, 0.0);
-	private_node_handle->param("tsv_data_offset_qy", qy, 0.0);
-	private_node_handle->param("tsv_data_offset_qz", qz, 0.0);
-	private_node_handle->param("tsv_data_offset_qw", qw, 1.0);
-	orientation_offset_.setValue(qx, qy, qz, qw);
-	orientation_offset_.normalize();
 
 	std::string source_frame_ids;
 	private_node_handle->param("source_frame_ids", source_frame_ids, std::string("base_link+camera2+camera1"));
@@ -39,6 +31,10 @@ void TSVToTF::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_han
 	private_node_handle->param("target_frame_ids", target_frame_ids, std::string("map+map+map"));
 	extractValues(target_frame_ids, target_frame_ids_);
 
+	std::string target_frame_ids_poses;
+	private_node_handle->param("target_frame_ids_poses", target_frame_ids_poses, std::string("map+map+map"));
+	extractValues(target_frame_ids_poses, target_frame_ids_poses_);
+
 	std::string invert_tf_transforms_str;
 	private_node_handle->param("invert_tf_transforms", invert_tf_transforms_str, std::string("0+0+0"));
 	extractValues(invert_tf_transforms_str, invert_tf_transforms_);
@@ -46,6 +42,23 @@ void TSVToTF::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_han
 	std::string invert_tf_hierarchies_str;
 	private_node_handle->param("invert_tf_hierarchies", invert_tf_hierarchies_str, std::string("0+0+0"));
 	extractValues(invert_tf_hierarchies_str, invert_tf_hierarchies_);
+
+	double tsv_data_offset_x, tsv_data_offset_y, tsv_data_offset_z;
+	private_node_handle->param("tsv_data_multiplier", tsv_data_multiplier_, 0.001);
+	private_node_handle->param("tsv_data_poses_offset_x", tsv_data_offset_x, 0.0);
+	private_node_handle->param("tsv_data_poses_offset_y", tsv_data_offset_y, 0.0);
+	private_node_handle->param("tsv_data_poses_offset_z", tsv_data_offset_z, 0.0);
+
+	double qx, qy, qz, qw;
+	private_node_handle->param("tsv_data_poses_offset_qx", qx, 0.0);
+	private_node_handle->param("tsv_data_poses_offset_qy", qy, 0.0);
+	private_node_handle->param("tsv_data_poses_offset_qz", qz, 0.0);
+	private_node_handle->param("tsv_data_poses_offset_qw", qw, 1.0);
+
+	transform_poses_offset_.setOrigin(tf2::Vector3(tsv_data_offset_x, tsv_data_offset_y, tsv_data_offset_z));
+	transform_poses_offset_.setRotation(tf2::Quaternion(qx, qy, qz, qw));
+
+	private_node_handle->param("tsv_data_poses_offset_post_multiplication", tsv_data_poses_offset_post_multiplication_, true);
 
 	std::string pose_topics;
 	private_node_handle->param("pose_topics", pose_topics, std::string("pose_robot+pose_camera2+pose_camera1"));
@@ -97,7 +110,7 @@ size_t TSVToTF::publishDataFromTSVFile(const std::string& filename) {
 		}
 
 		size_t number_of_tracking_bodies = tsv_data_columns_.size();
-		if (source_frame_ids_.size() != number_of_tracking_bodies || target_frame_ids_.size() != number_of_tracking_bodies) {
+		if (source_frame_ids_.size() != number_of_tracking_bodies || target_frame_ids_.size() != number_of_tracking_bodies || target_frame_ids_poses_.size() != number_of_tracking_bodies) {
 			ROS_ERROR("Incorrect configuration of frame_ids");
 			return 0;
 		}
@@ -176,9 +189,9 @@ bool TSVToTF::loadAndPublishTSVTFs(std::ifstream& input_stream, ros::Time& time_
 			double value_number;
 			if (ss_number >> value_number) {
 				if (current_token_index == 1) { time_stamp += ros::Duration(value_number * tsv_time_multiplier_); } 						else
-				if (current_token_index == current_target_index     ) {  x = value_number * tsv_data_multiplier_ + tsv_data_offset_x_; } 	else
-				if (current_token_index == current_target_index +  1) {  y = value_number * tsv_data_multiplier_ + tsv_data_offset_y_; } 	else
-				if (current_token_index == current_target_index +  2) {  z = value_number * tsv_data_multiplier_ + tsv_data_offset_z_; } 	else
+				if (current_token_index == current_target_index     ) {  x = value_number * tsv_data_multiplier_; } 	else
+				if (current_token_index == current_target_index +  1) {  y = value_number * tsv_data_multiplier_; } 	else
+				if (current_token_index == current_target_index +  2) {  z = value_number * tsv_data_multiplier_; } 	else
 				if (current_token_index == current_target_index +  7) { xx = value_number; } 												else
 				if (current_token_index == current_target_index +  8) { yx = value_number; } 												else
 				if (current_token_index == current_target_index +  9) { zx = value_number; } 												else
@@ -200,10 +213,27 @@ bool TSVToTF::loadAndPublishTSVTFs(std::ifstream& input_stream, ros::Time& time_
 				tf2::Quaternion orientation;
 				rotation_matrix.getRotation(orientation);
 				orientation.normalize();
-				orientation = orientation_offset_ * orientation;
-				orientation.normalize();
-				publishNewBodyTF(x, y, z, orientation, current_tracking_body_number, time_stamp);
-				publishNewBodyPose(x, y, z, orientation, current_tracking_body_number, time_stamp);
+
+				tf2::Transform tsv_tf;
+				tsv_tf.setOrigin(tf2::Vector3(x, y, z));
+				tsv_tf.setRotation(orientation);
+
+				tf2::Transform tsv_tf_transformed;
+				if (tsv_data_offset_post_multiplication_) {
+					tsv_tf_transformed = tsv_tf * transform_offset_;
+				} else {
+					tsv_tf_transformed = transform_offset_ * tsv_tf;
+				}
+
+				tf2::Transform tsv_tf_poses_transformed;
+				if (tsv_data_poses_offset_post_multiplication_) {
+					tsv_tf_poses_transformed = tsv_tf * transform_poses_offset_;
+				} else {
+					tsv_tf_poses_transformed = transform_poses_offset_ * tsv_tf;
+				}
+
+				publishNewBodyTF(tsv_tf_transformed.getOrigin().getX(), tsv_tf_transformed.getOrigin().getY(), tsv_tf_transformed.getOrigin().getZ(), tsv_tf_transformed.getRotation(), current_tracking_body_number, time_stamp);
+				publishNewBodyPose(tsv_tf_poses_transformed.getOrigin().getX(), tsv_tf_poses_transformed.getOrigin().getY(), tsv_tf_poses_transformed.getOrigin().getZ(), tsv_tf_poses_transformed.getRotation(), current_tracking_body_number, time_stamp);
 			}
 			point_valid = true;
 
@@ -259,7 +289,7 @@ void TSVToTF::publishNewBodyTF(double x, double y, double z, const tf2::Quaterni
 void TSVToTF::publishNewBodyPose(double x, double y, double z, const tf2::Quaternion& orientation, size_t tracking_body_number, const ros::Time& time_stamp) {
 	if (!pose_publishers_[tracking_body_number].getTopic().empty() || !pose_array_publishers_[tracking_body_number].getTopic().empty()) {
 		geometry_msgs::PoseStamped pose;
-		pose.header.frame_id = target_frame_ids_[tracking_body_number];
+		pose.header.frame_id = target_frame_ids_poses_[tracking_body_number];
 		pose.header.stamp = time_stamp;
 		pose.pose.position.x = x;
 		pose.pose.position.y = y;
@@ -276,7 +306,7 @@ void TSVToTF::publishNewBodyPose(double x, double y, double z, const tf2::Quater
 		if (pose_arrays_number_msgs_to_skip_in_pose_array_msgs_[tracking_body_number] <= 0 || pose_arrays_number_msgs_skipped_in_pose_array_msgs_[tracking_body_number] >= pose_arrays_number_msgs_to_skip_in_pose_array_msgs_[tracking_body_number]) {
 			if (!pose_array_publishers_[tracking_body_number].getTopic().empty()) {
 				pose_arrays_[tracking_body_number].poses.push_back(pose.pose);
-				pose_arrays_[tracking_body_number].header.frame_id = target_frame_ids_[tracking_body_number];
+				pose_arrays_[tracking_body_number].header.frame_id = target_frame_ids_poses_[tracking_body_number];
 				pose_arrays_[tracking_body_number].header.stamp = time_stamp;
 				pose_array_publishers_[tracking_body_number].publish(pose_arrays_[tracking_body_number]);
 			}

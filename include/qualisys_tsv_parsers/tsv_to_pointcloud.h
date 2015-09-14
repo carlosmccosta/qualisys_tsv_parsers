@@ -16,6 +16,8 @@
 // ROS includes
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2/LinearMath/Vector3.h>
 
 // external libs includes
 

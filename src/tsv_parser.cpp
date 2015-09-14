@@ -17,10 +17,8 @@ TSVParser::TSVParser(TSVPointType tsv_point_type) :
 		load_base_time_from_tsv_header_(true),
 		tsv_point_type_(tsv_point_type),
 		tsv_data_multiplier_(0.001),
-		tsv_data_offset_x_(0.0),
-		tsv_data_offset_y_(0.0),
-		tsv_data_offset_z_(0.0),
 		tsv_time_multiplier_(1.0),
+		tsv_data_offset_post_multiplication_(true),
 		tsv_null_string_("NULL")
 		{}
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </constructors-destructor>  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -37,10 +35,22 @@ void TSVParser::setupConfigurationFromParameterServer(ros::NodeHandlePtr& node_h
 	private_node_handle->param("tsv_data_columns", tsv_data_columns, std::string("2+5+8+11+14+17+20+23"));
 	extractValues(tsv_data_columns, tsv_data_columns_);
 
+	double tsv_data_offset_x, tsv_data_offset_y, tsv_data_offset_z;
 	private_node_handle->param("tsv_data_multiplier", tsv_data_multiplier_, 0.001);
-	private_node_handle->param("tsv_data_offset_x", tsv_data_offset_x_, 0.0);
-	private_node_handle->param("tsv_data_offset_y", tsv_data_offset_y_, 0.0);
-	private_node_handle->param("tsv_data_offset_z", tsv_data_offset_z_, 0.0);
+	private_node_handle->param("tsv_data_offset_x", tsv_data_offset_x, 0.0);
+	private_node_handle->param("tsv_data_offset_y", tsv_data_offset_y, 0.0);
+	private_node_handle->param("tsv_data_offset_z", tsv_data_offset_z, 0.0);
+
+	double qx, qy, qz, qw;
+	private_node_handle->param("tsv_data_offset_qx", qx, 0.0);
+	private_node_handle->param("tsv_data_offset_qy", qy, 0.0);
+	private_node_handle->param("tsv_data_offset_qz", qz, 0.0);
+	private_node_handle->param("tsv_data_offset_qw", qw, 1.0);
+
+	private_node_handle->param("tsv_data_offset_post_multiplication", tsv_data_offset_post_multiplication_, true);
+
+	transform_offset_.setOrigin(tf2::Vector3(tsv_data_offset_x, tsv_data_offset_y, tsv_data_offset_z));
+	transform_offset_.setRotation(tf2::Quaternion(qx, qy, qz, qw));
 
 	private_node_handle->param("tsv_time_multiplier", tsv_time_multiplier_, 1.0);
 	private_node_handle->param("tsv_null_string", tsv_null_string_, std::string("NULL"));

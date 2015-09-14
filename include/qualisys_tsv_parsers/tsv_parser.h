@@ -16,6 +16,9 @@
 
 // ROS includes
 #include <ros/ros.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2/LinearMath/Vector3.h>
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   </includes>   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
@@ -68,9 +71,8 @@ class TSVParser {
 		TSVPointType tsv_point_type_;
 		std::vector<size_t> tsv_data_columns_;
 		double tsv_data_multiplier_;
-		double tsv_data_offset_x_;
-		double tsv_data_offset_y_;
-		double tsv_data_offset_z_;
+		tf2::Transform transform_offset_;
+		bool tsv_data_offset_post_multiplication_;
 		double tsv_time_multiplier_;
 		std::string tsv_null_string_;
 
